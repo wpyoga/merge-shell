@@ -62,9 +62,8 @@ Notes on here-documents:
 Notes on multi-line strings:
 
 - this utility is unable to recognize multi-line strings and avoid indenting them -- such pattern recognition seems too complicated to implement
-- try to avoid using multi-line strings if you intend to indent the script
+- try to avoid using multi-line strings if you intend to indent the script, and **never indent merged files if you have to use multi-line strings**
     - multi-line strings are usually util for script output to a document, or for an awk/sed script -- these can be done using here-documents
 - if you have use multi-line strings, then either
     - don't indent the merged script, or
     - split off the multi-line string into its own merged script file, which you can then merge without indentation
-- **never indent merged files if you have to use multi-line strings**
