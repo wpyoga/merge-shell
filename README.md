@@ -6,6 +6,11 @@ This utility merges modular shell scripts into one big shell script for easy dis
 $ curl https://example.com/script.sh | sh
 ```
 
+I have set up a few forked repositories to showcase `merge-shell` functionality:
+- https://github.com/wpyoga/openvpn-install
+- https://github.com/wpyoga/wireguard-install
+- https://github.com/wpyoga/dehydrated
+
 ## Overview
 
 Too often, we see shell script projects having one big shell script that everyone edits. This may cause quite a few problems:
@@ -37,6 +42,8 @@ will be merged into the main script.
 This utility will exit `MERGE` mode once it sees a line that does not conform to the source line pattern. Note that the sourced script must end in `.sh` for the line to be recognized.
 
 After completing a pass, this utility will look for a `MERGE` line inside the script, and repeat the above actions if it finds any such lines. Note that `MERGE` lines found in here-documents and multi-line strings will be recognized as regular `MERGE` lines, so try to escape those lines a bit if you don't want them to be recognized as `MERGE` lines.
+
+Note that sourced files that are not preceded by the `MERGE` line are not merged into the script. This allows you to still use `source` or `.` to read in config files, without change in semantics.
 
 ## Script Indentation
 
