@@ -76,6 +76,7 @@ while grep -qE '^# @MERGE( (s|t) [0-9]+)?$' "${TMPFILE}"; do
                 fi
 
                 HEREDOC=false
+                MERGE_SCRIPT_MERGE_LINE=false
                 tail -n +$((SKIP_LINES + 1)) "${SCRIPT_TO_MERGE}" | while IFS= read -r MERGE_SCRIPT_LINE; do
                     if "${HEREDOC}"; then
                         printf "%s\n" "${MERGE_SCRIPT_LINE}" >>"${TMPFILE2}"
@@ -86,11 +87,16 @@ while grep -qE '^# @MERGE( (s|t) [0-9]+)?$' "${TMPFILE}"; do
                             HEREDOC=false
                         fi
                     else
-                        if printf %s "${LINE}" | grep -qE '^# @MERGE( [st] [0-9]+)?$'; then
+                        if printf %s "${MERGE_SCRIPT_LINE}" | grep -qE '^# @MERGE( [st] [0-9]+)?$'; then
+                            MERGE_SCRIPT_MERGE_LINE=true
+                            printf '%s\n' "${MERGE_SCRIPT_LINE}" >>"${TMPFILE2}"
+                        elif "${MERGE_SCRIPT_MERGE_LINE}" && test "${MERGE_SCRIPT_LINE}" != "${MERGE_SCRIPT_LINE#. }" && test "${MERGE_SCRIPT_LINE}" != "${MERGE_SCRIPT_LINE%.sh}"; then
                             printf '%s\n' "${MERGE_SCRIPT_LINE}" >>"${TMPFILE2}"
                         elif test -n "${MERGE_SCRIPT_LINE}"; then
+                            MERGE_SCRIPT_MERGE_LINE=false
                             printf "${INDENT_CHARS}%s\n" "${MERGE_SCRIPT_LINE}" >>"${TMPFILE2}"
                         else
+                            MERGE_SCRIPT_MERGE_LINE=false
                             echo >>"${TMPFILE2}"
                         fi
 
