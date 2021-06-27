@@ -67,3 +67,7 @@ Notes on multi-line strings:
 - if you have use multi-line strings, then either
     - don't indent the merged script, or
     - split off the multi-line string into its own merged script file, which you can then merge without indentation
+
+## Alternative Implemention(s)
+
+It might be a good idea to reimplement this using Python, what do you think?
