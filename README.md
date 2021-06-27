@@ -7,9 +7,18 @@ $ curl https://example.com/script.sh | sh
 ```
 
 I have set up a few forked repositories to showcase `merge-shell` functionality:
+
 - https://github.com/wpyoga/openvpn-install
+
+  No problems observed so far.
+
 - https://github.com/wpyoga/wireguard-install
+
+  No problems observed so far.
+
 - https://github.com/wpyoga/dehydrated
+
+  `dehydrated` generates help text by grepping the original script. Unfortunately, the information is buried inside the sub-scripts. With our current method of splitting the main script, `dehydrated-split` cannot display the help text properly.
 
 ## Overview
 
@@ -70,10 +79,10 @@ Notes on multi-line strings:
 
 - this utility is unable to recognize multi-line strings and avoid indenting them -- such pattern recognition seems too complicated to implement
 - try to avoid using multi-line strings if you intend to indent the script, and **never indent merged files if you have to use multi-line strings**
-    - multi-line strings are usually util for script output to a document, or for an awk/sed script -- these can be done using here-documents
+  - multi-line strings are usually util for script output to a document, or for an awk/sed script -- these can be done using here-documents
 - if you have use multi-line strings, then either
-    - don't indent the merged script, or
-    - split off the multi-line string into its own merged script file, which you can then merge without indentation
+  - don't indent the merged script, or
+  - split off the multi-line string into its own merged script file, which you can then merge without indentation
 
 ## Alternative Implemention(s)
 
