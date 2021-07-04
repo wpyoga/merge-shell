@@ -40,21 +40,23 @@ Depending on the annotation, `merge-shell` will enter different modes as describ
 
 Please let me know if you see any other shell constructs that need their own custom annotations.
 
-### `MERGE` mode
+### `@MERGE`
 
-`MERGE` mode starts when a line matches this regex:
+`@MERGE` means that the following dot line is to be merged into the main script. The merging is done recursively, and the indentation is carried over, meaning that the sourced file will be indented just like the dot line.
+
+The `@MERGE` annotation should match this regex:
 
 ```regexp
 ^\s*#\s*@MERGE\s*$
 ```
 
-In `MERGE` mode, each source line that matches this regex is merged into the main script:
+The dot line should match this regex:
 
 ```regexp
-^\s*\.\s+.*\.sh\s*$
+^\s*\.\s+[a-zA-Z0-9_\.][a-zA-Z0-9_\.\-]+\s*$
 ```
 
-`MERGE` mode stops when there is a line that does not match the source line regex.
+If the next line does not match the regex, then it will be treated as any other line.
 
 Usage:
 
@@ -72,9 +74,10 @@ Notes:
 
 - In this mode, `merge-shell` recursively merges each sourced script, recursively indented according to the source line indentation.
 - For each sourced script, the shebang and one empty line immediately following the shebang are discarded.
+- For simplicity, the sourced script file name can only consist of letters, numbers, underscore, dot, or dash. And it cannot start with a dash.
 - Outside of `MERGE` mode, sourced files are not merged into the script. This allows you to still use `source` or `.` or `dot` to read in config files, without change in semantics.
 
-### `HEREDOC` mode
+### `@HEREDOC` and `@HEREDOC-END`
 
 This mode encapsulates all here-documents in the shell script. Without this mode, here-documents will be indented, so that the here-document will indented by mistake, and the ending line may not be recognized properly.
 
@@ -108,7 +111,7 @@ Notes:
 
 - Avoid having a line that matches the `HEREDOC-END` line inside the here-document, otherwise the `HEREDOC` mode will end prematurely, and the following lines will be indented, thus breaking the here-document syntax.
 
-### `MULTILINE` mode
+### `@MULTILINE` and `@MULTILINE-END`
 
 This mode encapsulates all multi-line strings in the shell script. Without this mode, multi-line strings will be indented, so the content will be intended by mistake. This mode functions exactly like `HEREDOC` mode described above, but with a different annotation.
 
@@ -138,3 +141,7 @@ netmask 255.255.255.0' >ip-set.conf
 ## Alternative Implemention(s)
 
 It might be a good idea to reimplement this using Python.
+
+## TODO
+
+The code works, but it is complicated and messy -- it needs to be refactored.
