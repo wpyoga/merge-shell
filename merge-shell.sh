@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION=0.1
+VERSION=0.2
 
 if [ $# != 1 ]; then
     cat <<EOF

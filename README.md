@@ -34,56 +34,107 @@ I've read about another approach to merge modular shell scripts into one big she
 
 ## Mechanism
 
-This utility takes a single shell script as its argument, and parses it. Whenever it encounters a line that looks like
+`merge-shell` takes a single shell script as its argument, parses it, and prints the merged script to stdout. It works based on annotations inside comments, so that the split scripts are still valid shell scripts, and can work just like the merged script.
+
+Depending on the annotation, `merge-shell` will enter different modes as described below. The `MERGE` mode merges sub-scripts into the main script, while the `HEREDOC` and `MULTILINE` modes maintain proper indentation for here-documents and multi-line strings, respectively. The `HEREDOC` and `MULTILINE` modes exist so that we don't need to parse shell syntax to recognize here-documents and multi-line strings.
+
+Please let me know if you see any other shell constructs that need their own custom annotations.
+
+### `MERGE` mode
+
+`MERGE` mode starts when a line matches this regex:
+
+```regexp
+^\s*#\s*@MERGE\s*$
+```
+
+In `MERGE` mode, each source line that matches this regex is merged into the main script:
+
+```regexp
+^\s*\.\s+.*\.sh\s*$
+```
+
+`MERGE` mode stops when there is a line that does not match the source line regex.
+
+Usage:
 
 ```sh
 # @MERGE
+. options.sh
+
+if [ -f "/etc/myfile.conf" ]; then
+    # @MERGE
+    . load-custom.sh
+fi
 ```
 
-it will go into `MERGE` mode (we call this a `MERGE` line). In this mode, a source line that looks like
+Notes:
+
+- In this mode, `merge-shell` recursively merges each sourced script, recursively indented according to the source line indentation.
+- For each sourced script, the shebang and one empty line immediately following the shebang are discarded.
+- Outside of `MERGE` mode, sourced files are not merged into the script. This allows you to still use `source` or `.` or `dot` to read in config files, without change in semantics.
+
+### `HEREDOC` mode
+
+This mode encapsulates all here-documents in the shell script. Without this mode, here-documents will be indented, so that the here-document will indented by mistake, and the ending line may not be recognized properly.
+
+This mode starts when a line matches this regex:
+
+```regexp
+^\s*#\s*@HEREDOC\s*$
+```
+
+And ends at the end of the script, or when a line matches this regex:
+
+```regexp
+^\s*#\s*@HEREDOC-END\s*$
+```
+
+In this mode, the first line is merged into the main script, recursively indented according to the source line indentation. All other lines are not indented at all, but any existing indentation is copied as-is.
+
+Usage:
 
 ```sh
-. script.sh
+    # @HEREDOC
+    cat >custom.conf <<EOF
+[default]
+option1 = true
+option2 = 2.5
+EOF
+    # @HEREDOC-END
 ```
 
-will be merged into the main script.
+Notes:
 
-This utility will exit `MERGE` mode once it sees a line that does not conform to the source line pattern. Note that the sourced script must end in `.sh` for the line to be recognized.
+- Avoid having a line that matches the `HEREDOC-END` line inside the here-document, otherwise the `HEREDOC` mode will end prematurely, and the following lines will be indented, thus breaking the here-document syntax.
 
-After completing a pass, this utility will look for a `MERGE` line inside the script, and repeat the above actions if it finds any such lines. Note that `MERGE` lines found in here-documents and multi-line strings will be recognized as regular `MERGE` lines, so try to escape those lines a bit if you don't want them to be recognized as `MERGE` lines.
+### `MULTILINE` mode
 
-Note that sourced files that are not preceded by the `MERGE` line are not merged into the script. This allows you to still use `source` or `.` to read in config files, without change in semantics.
+This mode encapsulates all multi-line strings in the shell script. Without this mode, multi-line strings will be indented, so the content will be intended by mistake. This mode functions exactly like `HEREDOC` mode described above, but with a different annotation.
 
-## Script Indentation
+This mode starts when a line matches this regex:
 
-The `MERGE` line can actually conform to this regular expression:
-
-```re
-^# @MERGE ([st] [0-9]+)?$
+```regexp
+^\s*#\s*@MULTILINE\s*$
 ```
 
-If the `s` or `t` option is specified, it means that in the current `MERGE` mode, sourced scripts need to be indented:
+And ends at the end of the script, or when a line matches this regex:
 
-- `s`: with the specified number of spaces
-- `t`: with the specified number of tabs
+```regexp
+^\s*#\s*@MULTILINE-END\s*$
+```
 
-This feature is only offered for aesthetic purposes, and to increase readability of the merged script. However, it can cause problems with here-documents and multi-line strings, so **avoid using this feature if possible**.
+Usage:
 
-Notes on here-documents:
-
-- this utility tries to recognize here-documents and avoids indenting those sections
-- the pattern recognition is rudimentary, and may not work correctly with specialized here-document patterns
-- always check the merged script if you are not sure
-
-Notes on multi-line strings:
-
-- this utility is unable to recognize multi-line strings and avoid indenting them -- such pattern recognition seems too complicated to implement
-- try to avoid using multi-line strings if you intend to indent the script, and **never indent merged files if you have to use multi-line strings**
-  - multi-line strings are usually util for script output to a document, or for an awk/sed script -- these can be done using here-documents
-- if you have use multi-line strings, then either
-  - don't indent the merged script, or
-  - split off the multi-line string into its own merged script file, which you can then merge without indentation
+```sh
+    # @MULTILINE
+    echo '
+# ip config
+ip 192.168.0.105
+netmask 255.255.255.0' >ip-set.conf
+    # @MULTILINE-END
+```
 
 ## Alternative Implemention(s)
 
-It might be a good idea to reimplement this using Python, what do you think?
+It might be a good idea to reimplement this using Python.
