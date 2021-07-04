@@ -1,8 +1,11 @@
 #!/bin/sh
 
+VERSION=0.1
+
 if [ $# != 1 ]; then
     cat <<EOF
 usage: $0 <shell_script>
+version: ${VERSION}
 
 merge the specified shell script with its sub-scripts
 
