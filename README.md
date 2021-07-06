@@ -8,15 +8,15 @@ $ curl https://example.com/script.sh | sh
 
 I have set up a few forked repositories to showcase `merge-shell` functionality:
 
-- https://github.com/wpyoga/openvpn-install
+- https://github.com/wpyoga/openvpn-install/tree/faithful-fork
 
   No problems observed so far.
 
-- https://github.com/wpyoga/wireguard-install
+- https://github.com/wpyoga/wireguard-install/tree/faithful-fork
 
   No problems observed so far.
 
-- https://github.com/wpyoga/dehydrated
+- https://github.com/wpyoga/dehydrated/tree/faithful-fork
 
   `dehydrated` generates help text by grepping the original script. Unfortunately, the information is buried inside the sub-scripts. With our current method of splitting the main script, `dehydrated-split` cannot display the help text properly. The merged script can display the help text properly.
 
