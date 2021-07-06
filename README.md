@@ -18,7 +18,7 @@ I have set up a few forked repositories to showcase `merge-shell` functionality:
 
 - https://github.com/wpyoga/dehydrated
 
-  `dehydrated` generates help text by grepping the original script. Unfortunately, the information is buried inside the sub-scripts. With our current method of splitting the main script, `dehydrated-split` cannot display the help text properly.
+  `dehydrated` generates help text by grepping the original script. Unfortunately, the information is buried inside the sub-scripts. With our current method of splitting the main script, `dehydrated-split` cannot display the help text properly. The merged script can display the help text properly.
 
 ## Overview
 
