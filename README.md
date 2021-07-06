@@ -20,6 +20,10 @@ I have set up a few forked repositories to showcase `merge-shell` functionality:
 
   `dehydrated` generates help text by grepping the original script. Unfortunately, the information is buried inside the sub-scripts. With our current method of splitting the main script, `dehydrated-split` cannot display the help text properly. The merged script can display the help text properly.
 
+- https://github.com/wpyoga/LemonBench/tree/faithful-fork
+
+  No problems observed so far, but see [Caveats](#caveats) below.
+
 ## Overview
 
 Too often, we see shell script projects having one big shell script that everyone edits. This may cause quite a few problems:
@@ -137,6 +141,18 @@ ip 192.168.0.105
 netmask 255.255.255.0' >ip-set.conf
     # @MULTILINE-END
 ```
+
+## Caveats
+
+Files that don't have an ending newline won't be read properly. According to [POSIX](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_206):
+
+> 3.206 Line
+>
+> A sequence of zero or more non- \<newline\> characters plus a terminating \<newline\> character.
+
+If the last line does not have a terminating \<newline\> character, it won't be recognized as a line, thus `read` won't be able to read it, and will not be processed. The proper solution is to always have a terminating \<newline\>.
+
+This problem is observed on files created using Windows. To avoid it, always add an extra newline at the end of source files.
 
 ## Alternative Implemention(s)
 
