@@ -42,7 +42,7 @@ mergeshell() {
         CHECK_EMPTY_LINE=false
     fi
 
-    if [ "`tail -c 1 "$1"`" != "`printf '\n'`" ]; then
+    if [ "$(tail -c 1 "$1")" != "$(printf '\n')" ]; then
         echo "Warning: input file $1: no newline at end of file, last line in file will not be recognized" >&2
     fi
 
