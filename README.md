@@ -22,7 +22,9 @@ I have set up a few forked repositories to showcase `merge-shell` functionality:
 
 - https://github.com/wpyoga/LemonBench/tree/faithful-fork
 
-  No problems observed so far, but see [Caveats](#caveats) below.
+  No problems observed so far, but see [Caveats](#caveats) below. The original `LemonBench.sh` script does not have a trailing newline, so in this faithful reproduction we added a trailing newline to `LemonBench-split.sh`, which is then stripped off from the generated `LemonBench-merged.sh`.
+
+  In general, if it finds an input file with no trailing newline, `merge-shell` will print a warning to stderr. Heed this warning, because the output file will be unusable, due to the last line being unreadable
 
 ## Overview
 
