@@ -24,7 +24,7 @@ I have set up a few forked repositories to showcase `merge-shell` functionality:
 
   No problems observed so far, but see [Caveats](#caveats) below. The original `LemonBench.sh` script does not have a trailing newline, so in this faithful reproduction we added a trailing newline to `LemonBench-split.sh`, which is then stripped off from the generated `LemonBench-merged.sh`.
 
-  In general, if it finds an input file with no trailing newline, `merge-shell` will print a warning to stderr. Heed this warning, because the output file will be unusable, due to the last line being unreadable
+  In general, if it finds an input file with no trailing newline, `merge-shell` will print a warning to stderr. Heed this warning, because the output file will be unusable, due to the last line being unreadable.
 
 ## Overview
 
@@ -154,7 +154,22 @@ Files that don't have an ending newline won't be read properly. According to [PO
 
 If the last line does not have a terminating \<newline\> character, it won't be recognized as a line, thus `read` won't be able to read it, and will not be processed. The proper solution is to always have a terminating \<newline\>.
 
-This problem is observed on files created using Windows. To avoid it, always add an extra newline at the end of source files.
+This problem is observed on files created using Windows. To avoid it, always add an extra newline at the end of source files, like this:
+
+```txt
+line 1
+line 2
+last line is an empty line
+
+```
+
+Instead of just this:
+
+```txt
+line 1
+line 2
+last line without extra newline
+```
 
 ## Alternative Implemention(s)
 
