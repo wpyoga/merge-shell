@@ -1,6 +1,10 @@
 #!/bin/sh
 
-VERSION=0.2
+VERSION=0.2.1
+
+# our annotations only support ASCII
+# the dot lines only support ASCII as well
+export LC_ALL=C
 
 if [ $# != 1 ]; then
     cat <<EOF
@@ -21,6 +25,10 @@ this allows for modular shell script development:
 notes on merged script:
 - shebang and the empty line after it will be removed from sourced script
 - the first empty line after the shebang will be removed
+
+more annotations are available:
+- @HEREDOC and @HEREDOC-END to wrap a here-document
+- @MULTILINE and @MULTILINE-END to wrap a multi-line string
 EOF
     exit 1
 fi
@@ -32,6 +40,10 @@ mergeshell() {
     else
         CHECK_SHEBANG=true
         CHECK_EMPTY_LINE=false
+    fi
+
+    if [ "`tail -c 1 "$1"`" != "`printf '\n'`" ]; then
+        echo "Warning: input file $1: no newline at end of file, last line in file will not be recognized" >&2
     fi
 
     MERGE=false
