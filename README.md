@@ -26,6 +26,10 @@ I have set up a few forked repositories to showcase `merge-shell` functionality:
 
   In general, if it finds an input file with no trailing newline, `merge-shell` will print a warning to stderr. Heed this warning, because the output file will be unusable, due to the last line being unreadable.
 
+- https://github.com/wpyoga/nvm/tree/faithful-fork
+
+  No problems observed so far.
+
 ## Overview
 
 Too often, we see shell script projects having one big shell script that everyone edits. This may cause quite a few problems:
