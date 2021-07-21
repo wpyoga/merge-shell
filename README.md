@@ -30,29 +30,48 @@ I have set up a few forked repositories to showcase `merge-shell` functionality:
 
   No problems observed so far.
 
+- https://github.com/wpyoga/yet-another-bench-script/tree/faithful-fork
+
+  No problems observed so far.
+
 ## Overview
 
-Too often, we see shell script projects having one big shell script that everyone edits. This may cause quite a few problems:
+Sometimes, shell utilities are developed in a monolithic manner, with a big script containing all the code to the project. It's understandable that some developers have chosen this development pattern, because it's easier to distribute a single shell script, rather than multiple files. A user can simply use a one-liner like this to execute the script directly:
 
-- accidental keystrokes changing unintended parts of the script go unnoticed, especially when the changeset is quite large
-- developers having to navigate a big shell script just to find and edit a section of the code
-- new developers struggle to understand the code because of lack of modularity
+```console
+$ curl https://github.com/wpyoga/script-example/my_script.sh | sh
+```
 
-In contrast, projects written in other languages (including scripting languages that are not shell scripts) are often written in a modular way.
+The shell script can be very long, sometimes reaching thousands of lines in a single file. Functions are often interspersed with calling code. This kind of development pattern may cause a few problems:
 
-I've read about another approach to merge modular shell scripts into one big shell script, using a compressed archive inside the script, which is then extracted when the script is run. I remember that it was hosted on GitHub -- however, after searching for a few days, I still couldn't find the project. Please let me know if you have information about that project.
+- the code becomes difficult to reason about
+- developers have to navigate a big shell script just to find and edit a section of the code
+- as a result, it is difficult to maintain the code, so bug fixes and feature additions become slower over time
+- it is often impossible to do unit tests
+- another side effect is that new developers can sometimes struggle to understand the code, thus raising the bar for potential contributors
+- during development, accidental keystrokes changing unintended parts of the script might go unnoticed, especially when the changeset is quite large -- leading to hard-to-find bugs
+
+In contrast, projects written in other languages are often written in a modular way. Projects written in compiled languages (C, Java, Rust, ...) are most of the time modular, and even scripting languages like Python and JavaScript are usually written in a modular way. This really helps with the readability and maintainability of the code.
+
+It's not impossible to develop shell scripts in a modular way, and I've actually read about another approach of self-extracting shell script. In that scenario, script components are packaged in a compressed tarball, which is then embedded as a base64-encoded string inside the script. When the script is run, it decodes the string and extracts the archive, the contents of which is then executed. I remember that it was hosted on GitHub -- however, after searching for a few days, I still couldn't find the project. Please let me know if you have information about that project.
 
 ## Mechanism
 
-`merge-shell` takes a single shell script as its argument, parses it, and prints the merged script to stdout. It works based on annotations inside comments, so that the split scripts are still valid shell scripts, and can work just like the merged script.
+Our solution, `merge-shell` takes a single shell script as its argument, parses it, and prints the merged script to stdout. It works by parsing annotations inside comments, so that the split scripts are still valid shell scripts, and can work just like the merged script. This is useful during development, enabling the developer to test the script without merging them.
 
-Depending on the annotation, `merge-shell` will enter different modes as described below. The `MERGE` mode merges sub-scripts into the main script, while the `HEREDOC` and `MULTILINE` modes maintain proper indentation for here-documents and multi-line strings, respectively. The `HEREDOC` and `MULTILINE` modes exist so that we don't need to parse shell syntax to recognize here-documents and multi-line strings.
+There are currently 3 defined annotations:
+
+- `@MERGE` for merging sub-scripts into the main script
+- `@HEREDOC` and `@HEREDOC-END` to maintain proper indentation for here-documents
+- `@MULTILINE` and `@MULTILINE-END` to maintain proper indentation for multi-line strings, respectively
+
+With `@HEREDOC` and `@MULTILINE` annotations, `merge-shell` does not need to parse shell syntax to recognize here-documents and multi-line strings.
 
 Please let me know if you see any other shell constructs that need their own custom annotations.
 
 ### `@MERGE`
 
-`@MERGE` means that the following dot line is to be merged into the main script. The merging is done recursively, and the indentation is carried over, meaning that the sourced file will be indented just like the dot line.
+The `@MERGE` annotation means that the following dot line is to be merged into the main script. The merging is done recursively, and the indentation is carried over, so that the sourced file will be indented just like the dot line. The annotation itself is not carried over to the output script.
 
 The `@MERGE` annotation should match this regex:
 
@@ -68,7 +87,7 @@ The dot line should match this regex:
 
 If the next line does not match the regex, then it will be treated as any other line.
 
-Usage:
+Example usage:
 
 ```sh
 # @MERGE
@@ -85,27 +104,25 @@ Notes:
 - In this mode, `merge-shell` recursively merges each sourced script, recursively indented according to the source line indentation.
 - For each sourced script, the shebang and one empty line immediately following the shebang are discarded.
 - For simplicity, the sourced script file name can only consist of letters, numbers, underscore, dot, or dash. And it cannot start with a dash.
-- Outside of `MERGE` mode, sourced files are not merged into the script. This allows you to still use `source` or `.` or `dot` to read in config files, without change in semantics.
+- If the `@MERGE` annotation is not specified, then the file will not be merged. This may be useful when sourcing config files at runtime.
 
 ### `@HEREDOC` and `@HEREDOC-END`
 
-This mode encapsulates all here-documents in the shell script. Without this mode, here-documents will be indented, so that the here-document will indented by mistake, and the ending line may not be recognized properly.
+This annotation marks the start and end of a here-document. Between `@HEREDOC` and `@HEREDOC-END`, only the first line is indented, and all the other lines are not indented. Thus ensuring that the here-document contents are correct, and that the here-document EOF marker can be identified correctly.
 
-This mode starts when a line matches this regex:
+The annotations should match these regexes:
 
 ```regexp
 ^\s*#\s*@HEREDOC\s*$
 ```
 
-And ends at the end of the script, or when a line matches this regex:
-
 ```regexp
 ^\s*#\s*@HEREDOC-END\s*$
 ```
 
-In this mode, the first line is merged into the main script, recursively indented according to the source line indentation. All other lines are not indented at all, but any existing indentation is copied as-is.
+Note that if the `@HEREDOC-END` annotation is not given, then the rest of the sub-script file is treated as a here-document, thus not indented at all.
 
-Usage:
+Example usage:
 
 ```sh
     # @HEREDOC
@@ -123,21 +140,17 @@ Notes:
 
 ### `@MULTILINE` and `@MULTILINE-END`
 
-This mode encapsulates all multi-line strings in the shell script. Without this mode, multi-line strings will be indented, so the content will be intended by mistake. This mode functions exactly like `HEREDOC` mode described above, but with a different annotation.
-
-This mode starts when a line matches this regex:
+This annotation has the same effect as `@HEREDOC` -- only the first line is indented. The annotation should match these regular expressions:
 
 ```regexp
 ^\s*#\s*@MULTILINE\s*$
 ```
 
-And ends at the end of the script, or when a line matches this regex:
-
 ```regexp
 ^\s*#\s*@MULTILINE-END\s*$
 ```
 
-Usage:
+Example usage:
 
 ```sh
     # @MULTILINE
@@ -181,4 +194,4 @@ It might be a good idea to reimplement this using Python.
 
 ## TODO
 
-The code works, but it is complicated and messy -- it needs to be refactored.
+The code needs to be refactored.
