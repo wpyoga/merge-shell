@@ -34,6 +34,10 @@ I have set up a few forked repositories to showcase `merge-shell` functionality:
 
   No problems observed so far.
 
+- https://github.com/wpyoga/rustup/tree/faithful-fork
+
+  No problems observed so far.
+
 ## Overview
 
 Sometimes, shell utilities are developed in a monolithic manner, with a big script containing all the code to the project. It's understandable that some developers have chosen this development pattern, because it's easier to distribute a single shell script, rather than multiple files. A user can simply use a one-liner like this to execute the script directly:
