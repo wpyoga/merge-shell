@@ -192,7 +192,7 @@ line 2
 last line without extra newline
 ```
 
-## Alternative Implemention(s)
+## Alternative Implementation(s)
 
 It might be a good idea to reimplement this using Python.
 
